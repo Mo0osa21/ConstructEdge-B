@@ -1,39 +1,51 @@
 const { Cart, Order } = require('../models')
 
-const PlaceOrder = async (req, res) => {
+const AddToCart = async (req, res) => {
   try {
     const userId = req.user.id
+    const { productId, quantity } = req.body
 
-    const cart = await Cart.findOne({ user: userId })
-
-    if (!cart || cart.products.length === 0) {
-      return res
-        .status(400)
-        .send({ msg: 'Cart is empty. Cannot place an order.' })
+    const product = await Product.findById(productId)
+    if (!product) {
+      return res.status(404).send({ msg: 'Product not found' })
     }
 
-    const newOrder = await Order.create({
-      user: userId,
-      products: cart.products,
-      totalPrice: cart.totalPrice,
-      orderDate: new Date(),
-      status: 'pending'
-    })
+    let cart = await Cart.findOne({ user: userId })
 
-    cart.products = []
-    cart.totalPrice = 0
+    if (!cart) {
+      cart = new Cart({
+        user: userId,
+        products: [{ product: productId, quantity, price: product.price }],
+        totalPrice: product.price * quantity
+      })
+    } else {
+      const existingProduct = cart.products.find(
+        (item) => item.product.toString() === productId
+      )
+
+      if (existingProduct) {
+        existingProduct.quantity += quantity
+        existingProduct.price = product.price * existingProduct.quantity
+      } else {
+        cart.products.push({
+          product: productId,
+          quantity,
+          price: product.price * quantity
+        })
+      }
+
+      cart.totalPrice = cart.products.reduce((sum, item) => sum + item.price, 0)
+    }
+
     await cart.save()
 
-    res.status(201).send({
-      msg: 'Order placed successfully',
-      order: newOrder
-    })
+    res.status(200).send({ msg: 'Product added to cart', cart })
   } catch (error) {
-    console.error('Error placing order:', error)
-    res.status(500).send({ error: 'Failed to place order' })
+    console.error('Error adding to cart:', error)
+    res.status(500).send({ error: 'Failed to add product to cart' })
   }
 }
 
 module.exports = {
-  PlaceOrder
+  AddToCart
 }
