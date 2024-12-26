@@ -9,6 +9,15 @@ const GetProducts = async (req, res) => {
   }
 }
 
+const GetProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.product_id)
+    res.status(200).send(product)
+  } catch (error) {
+    throw error
+  }
+}
+
 const CreateProduct = async (req, res) => {
   try {
     const product = await Product.create({ ...req.body })
@@ -36,13 +45,11 @@ const UpdateProduct = async (req, res) => {
 const DeleteProduct = async (req, res) => {
   try {
     await Product.deleteOne({ _id: req.params.product_id })
-    res
-      .status(200)
-      .send({
-        msg: 'Product Deleted',
-        payload: req.params.product_id,
-        status: 'Ok'
-      })
+    res.status(200).send({
+      msg: 'Product Deleted',
+      payload: req.params.product_id,
+      status: 'Ok'
+    })
   } catch (error) {
     throw error
   }
