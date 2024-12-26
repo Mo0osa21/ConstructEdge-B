@@ -6,7 +6,6 @@ router.get(
   '/',
   middleware.stripToken,
   middleware.verifyToken,
-  middleware.verifyAdmin,
   controller.GetAllOrders
 )
 
@@ -28,7 +27,6 @@ router.put(
   '/:orderId',
   middleware.stripToken,
   middleware.verifyToken,
-  middleware.verifyAdmin,
   controller.UpdateOrderStatus
 )
 
