@@ -59,5 +59,6 @@ module.exports = {
   GetProducts,
   CreateProduct,
   UpdateProduct,
-  DeleteProduct
+  DeleteProduct,
+  GetProduct
 }

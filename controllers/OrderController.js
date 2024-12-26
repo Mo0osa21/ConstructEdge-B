@@ -94,5 +94,6 @@ const PlaceOrder = async (req, res) => {
 module.exports = {
   GetAllOrders,
   GetUserOrders,
-  PlaceOrder
+  PlaceOrder,
+  UpdateOrderStatus
 }
