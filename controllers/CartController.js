@@ -1,9 +1,12 @@
-const { Cart } = require('../models')
+const { Cart, Product } = require('../models')
 
 const AddToCart = async (req, res) => {
   try {
     const userId = req.user.id
-    const { productId, quantity } = req.body
+    const { products } = req.body
+
+    // Assume we are adding only the first product in the array
+    const { product: productId, quantity } = products[0]
 
     const product = await Product.findById(productId)
     if (!product) {

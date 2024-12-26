@@ -49,12 +49,10 @@ const verifyToken = (req, res, next) => {
   const { token } = res.locals
   // Gets the token stored in the request lifecycle state
   try {
-    let payload = jwt.verify(token, APP_SECRET)
-    // Verifies the token is legit
+    let payload = jwt.verify(token, APP_SECRET) // Verifies the token is legit
     if (payload) {
-      res.locals.payload = payload // Passes the decoded payload to the next function
-      // Calls the next function if the token is valid
-      return next()
+      req.user = payload // Attach the decoded payload to req.user
+      return next() // Calls the next function if the token is valid
     }
     res.status(401).send({ status: 'Error', msg: 'Unauthorized' })
   } catch (error) {

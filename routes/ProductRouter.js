@@ -4,7 +4,7 @@ const middleware = require('../middleware')
 
 router.get('/', controller.GetProducts)
 
-router.get('/:product_id', controller.GetProduct)
+router.get('/:productId', controller.GetProduct)
 
 router.post(
   '/',
@@ -14,14 +14,14 @@ router.post(
 )
 
 router.put(
-  '/:product_id',
+  '/:productId',
   middleware.stripToken,
   middleware.verifyToken,
   controller.UpdateProduct
 )
 
 router.delete(
-  '/:product_id',
+  '/:productId',
   middleware.stripToken,
   middleware.verifyToken,
   controller.DeleteProduct
