@@ -38,6 +38,7 @@ const UpdateOrderStatus = async (req, res) => {
       'Cancelled'
     ]
 
+    // Normalize input for case-insensitive comparison
     const normalizedStatus =
       status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
 
@@ -45,16 +46,28 @@ const UpdateOrderStatus = async (req, res) => {
       return res.status(400).send({ msg: 'Invalid status' })
     }
 
-    const order = await Order.findByIdAndUpdate(
-      orderId,
-      { status: normalizedStatus },
-      { new: true }
-    )
+    const statusActions = {
+      Shipped: { shippedAt: new Date() },
+      Delivered: { deliveredAt: new Date() },
+      Cancelled: { cancelledAt: new Date() }
+    }
+
+    const updateData = {
+      status: normalizedStatus,
+      ...statusActions[normalizedStatus]
+    }
+
+    const order = await Order.findByIdAndUpdate(orderId, updateData, {
+      new: true
+    })
     if (!order) {
       return res.status(404).send({ msg: 'Order not found' })
     }
 
-    res.status(200).send({ msg: 'Order status updated', order })
+    res.status(200).send({
+      msg: `Order status updated to "${normalizedStatus}"`,
+      order
+    })
   } catch (error) {
     console.error('Error updating order status:', error)
     res.status(500).send({ error: 'Failed to update order status' })
