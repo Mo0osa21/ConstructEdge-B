@@ -20,7 +20,7 @@ const GetCart = async (req, res) => {
 
 const AddToCart = async (req, res) => {
   try {
-    const { products } = req.body // Array of products
+    const { products } = req.body
     const userId = req.user.id
 
     if (!Array.isArray(products) || products.length === 0) {
@@ -31,27 +31,24 @@ const AddToCart = async (req, res) => {
 
     let cart = await Cart.findOne({ user: userId })
     if (!cart) {
-      // Create a new cart if it doesn't exist
       cart = new Cart({ user: userId, products: [], totalPrice: 0 })
     }
 
+    let totalPrice = 0
+
     for (const { product, quantity, price } of products) {
-      // Ensure cart.products is an array
-      if (!Array.isArray(cart.products)) {
-        cart.products = []
+      if (!product || !quantity || !price) {
+        return res.status(400).send({ msg: 'Invalid product data.' })
       }
 
-      const existingProductIndex = cart.products.findIndex((item) => {
-        // Check if the item has a valid product field
-        return item.product && item.product.toString() === product
-      })
+      const existingProductIndex = cart.products.findIndex(
+        (item) => item.product.toString() === product.toString()
+      )
 
       if (existingProductIndex > -1) {
-        // Update quantity and price for the existing product
         cart.products[existingProductIndex].quantity += quantity
         cart.products[existingProductIndex].price += price * quantity
       } else {
-        // Add the new product to the cart
         cart.products.push({
           product,
           quantity,
@@ -59,11 +56,11 @@ const AddToCart = async (req, res) => {
         })
       }
 
-      // Update total price
-      cart.totalPrice += price * quantity
+      totalPrice += price * quantity
     }
 
-    // Save the updated cart
+    cart.totalPrice = totalPrice
+
     await cart.save()
 
     res.status(200).send({ msg: 'Products added to cart', cart })

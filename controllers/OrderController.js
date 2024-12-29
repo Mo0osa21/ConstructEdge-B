@@ -38,7 +38,6 @@ const UpdateOrderStatus = async (req, res) => {
       'Cancelled'
     ]
 
-    // Normalize input for case-insensitive comparison
     const normalizedStatus =
       status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
 
