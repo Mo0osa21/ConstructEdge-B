@@ -37,13 +37,17 @@ const UpdateOrderStatus = async (req, res) => {
       'Delivered',
       'Cancelled'
     ]
-    if (!validStatuses.includes(status)) {
+
+    const normalizedStatus =
+      status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
+
+    if (!validStatuses.includes(normalizedStatus)) {
       return res.status(400).send({ msg: 'Invalid status' })
     }
 
     const order = await Order.findByIdAndUpdate(
       orderId,
-      { status },
+      { status: normalizedStatus },
       { new: true }
     )
     if (!order) {
@@ -59,31 +63,27 @@ const UpdateOrderStatus = async (req, res) => {
 
 const PlaceOrder = async (req, res) => {
   try {
-    const userId = req.user.id // Get the user ID from the JWT token
-    const cart = await Cart.findOne({ user: userId }) // Find the user's cart
+    const userId = req.user.id
+    const cart = await Cart.findOne({ user: userId })
 
-    // Check if cart is empty
     if (!cart || cart.products.length === 0) {
       return res
         .status(400)
         .send({ msg: 'Cart is empty. Cannot place an order.' })
     }
 
-    // Create a new order based on the cart
     const newOrder = await Order.create({
       user: userId,
       products: cart.products,
       totalPrice: cart.totalPrice,
       orderDate: new Date(),
-      status: 'pending' // Set the initial status of the order
+      status: 'pending'
     })
 
-    // Clear the cart after placing the order
-    cart.products = [] // Remove all products from the cart
-    cart.totalPrice = 0 // Reset total price
-    await cart.save() // Save the updated cart
+    cart.products = []
+    cart.totalPrice = 0
+    await cart.save()
 
-    // Send response with the newly created order
     res.status(201).send({
       msg: 'Order placed successfully',
       order: newOrder
