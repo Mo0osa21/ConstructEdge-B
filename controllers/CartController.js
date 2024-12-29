@@ -20,50 +20,56 @@ const GetCart = async (req, res) => {
 
 const AddToCart = async (req, res) => {
   try {
+    const { products } = req.body // Array of products
     const userId = req.user.id
-    const { products } = req.body
 
-    // Assume we are adding only the first product in the array
-    const { product: productId, quantity } = products[0]
-
-    const product = await Product.findById(productId)
-    if (!product) {
-      return res.status(404).send({ msg: 'Product not found' })
+    if (!Array.isArray(products) || products.length === 0) {
+      return res
+        .status(400)
+        .send({ msg: 'Products array is required and cannot be empty.' })
     }
 
     let cart = await Cart.findOne({ user: userId })
-
     if (!cart) {
-      cart = new Cart({
-        user: userId,
-        products: [{ product: productId, quantity, price: product.price }],
-        totalPrice: product.price * quantity
-      })
-    } else {
-      const existingProduct = cart.products.find(
-        (item) => item.product.toString() === productId
-      )
+      // Create a new cart if it doesn't exist
+      cart = new Cart({ user: userId, products: [], totalPrice: 0 })
+    }
 
-      if (existingProduct) {
-        existingProduct.quantity += quantity
-        existingProduct.price = product.price * existingProduct.quantity
+    for (const { product, quantity, price } of products) {
+      // Ensure cart.products is an array
+      if (!Array.isArray(cart.products)) {
+        cart.products = []
+      }
+
+      const existingProductIndex = cart.products.findIndex((item) => {
+        // Check if the item has a valid product field
+        return item.product && item.product.toString() === product
+      })
+
+      if (existingProductIndex > -1) {
+        // Update quantity and price for the existing product
+        cart.products[existingProductIndex].quantity += quantity
+        cart.products[existingProductIndex].price += price * quantity
       } else {
+        // Add the new product to the cart
         cart.products.push({
-          product: productId,
+          product,
           quantity,
-          price: product.price * quantity
+          price
         })
       }
 
-      cart.totalPrice = cart.products.reduce((sum, item) => sum + item.price, 0)
+      // Update total price
+      cart.totalPrice += price * quantity
     }
 
+    // Save the updated cart
     await cart.save()
 
-    res.status(200).send({ msg: 'Product added to cart', cart })
+    res.status(200).send({ msg: 'Products added to cart', cart })
   } catch (error) {
-    console.error('Error adding to cart:', error)
-    res.status(500).send({ error: 'Failed to add product to cart' })
+    console.error('Error adding product to cart:', error)
+    res.status(500).send({ error: 'Failed to add products to cart' })
   }
 }
 
