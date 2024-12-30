@@ -2,7 +2,7 @@ const { Product } = require('../models')
 
 const GetProducts = async (req, res) => {
   try {
-    const products = await Product.find({})
+    const products = await Product.find({}).populate('category')
     res.status(200).send(products)
   } catch (error) {
     throw error
@@ -11,7 +11,7 @@ const GetProducts = async (req, res) => {
 
 const GetProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.productId)
+    const product = await Product.findById(req.params.productId).populate('category')
     res.status(200).send(product)
   } catch (error) {
     throw error
