@@ -11,7 +11,7 @@ const GetProducts = async (req, res) => {
 
 const GetProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.product_id)
+    const product = await Product.findById(req.params.productId)
     res.status(200).send(product)
   } catch (error) {
     throw error
@@ -30,24 +30,24 @@ const CreateProduct = async (req, res) => {
 const UpdateProduct = async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(
-      req.params.product_id,
+      req.params.productId,
       req.body,
       {
         new: true
       }
-    )
-    res.status(200).send(product)
+    );
+    res.status(200).send(product);
   } catch (error) {
-    throw error
+    throw error;
   }
 }
 
 const DeleteProduct = async (req, res) => {
   try {
-    await Product.deleteOne({ _id: req.params.product_id })
+    await Product.deleteOne({ _id: req.params.productId })
     res.status(200).send({
       msg: 'Product Deleted',
-      payload: req.params.product_id,
+      payload: req.params.productId,
       status: 'Ok'
     })
   } catch (error) {
