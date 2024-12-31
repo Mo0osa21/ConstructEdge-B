@@ -1,4 +1,4 @@
-const { Order, Cart } = require('../models')
+const { Order, Cart, Product } = require('../models')
 
 const GetAllOrders = async (req, res) => {
   try {
@@ -91,6 +91,20 @@ const PlaceOrder = async (req, res) => {
       orderDate: new Date(),
       status: 'pending'
     })
+
+    for (let i = 0; i < cart.products.length; i++) {
+      const product = cart.products[i]
+      const productInDb = await Product.findById(product.product)
+
+      if (productInDb.stockQuantity < product.quantity) {
+        return res.status(400).send({
+          msg: `Not enough stock for product: ${productInDb.name}`
+        })
+      }
+
+      productInDb.stockQuantity -= product.quantity
+      await productInDb.save()
+    }
 
     cart.products = []
     cart.totalPrice = 0
