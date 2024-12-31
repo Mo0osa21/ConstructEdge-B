@@ -1,6 +1,6 @@
 const { Product } = require('../models')
-
-
+const { Order } = require('../models')
+const { Cart } = require('../models')
 
 const GetProducts = async (req, res) => {
   try {
@@ -52,14 +52,38 @@ const UpdateProduct = async (req, res) => {
 
 const DeleteProduct = async (req, res) => {
   try {
-    await Product.deleteOne({ _id: req.params.productId })
+    const productId = req.params.productId
+
+    const isInOrder = await Order.findOne({ 'products.productId': productId })
+    if (isInOrder) {
+      return res.status(400).send({
+        msg: 'Product cannot be deleted as it exists in an order.',
+        status: 'Error'
+      })
+    }
+
+    const isInCart = await Cart.findOne({
+      'products.product': productId
+    })
+    if (isInCart) {
+      return res.status(400).send({
+        msg: 'Product cannot be deleted as it exists in an active cart.',
+        status: 'Error'
+      })
+    }
+
+    await Product.deleteOne({ _id: productId })
     res.status(200).send({
-      msg: 'Product Deleted',
-      payload: req.params.productId,
+      msg: 'Product deleted successfully',
+      payload: productId,
       status: 'Ok'
     })
   } catch (error) {
-    throw error
+    console.error('Error deleting product:', error)
+    res.status(500).send({
+      msg: 'Failed to delete product. Please try again later.',
+      status: 'Error'
+    })
   }
 }
 
@@ -68,6 +92,5 @@ module.exports = {
   CreateProduct,
   UpdateProduct,
   DeleteProduct,
-  GetProduct,
-  
+  GetProduct
 }
