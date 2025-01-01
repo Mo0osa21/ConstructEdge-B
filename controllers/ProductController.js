@@ -28,25 +28,89 @@ const GetProduct = async (req, res) => {
 
 const CreateProduct = async (req, res) => {
   try {
-    const product = await Product.create({ ...req.body })
+    const {
+      name,
+      description,
+      price,
+      discount,
+      imageUrl,
+      category,
+      stockQuantity
+    } = req.body
+    const discountedPrice =
+      discount > 0 ? price - (price * discount) / 100 : price
+
+    const product = await Product.create({
+      name,
+      description,
+      price,
+      discount,
+      discountedPrice,
+      imageUrl,
+      category,
+      stockQuantity
+    })
+
     res.status(200).send(product)
   } catch (error) {
-    throw error
+    console.error('Error creating product:', error)
+    res.status(500).send({ error: 'Error creating product' })
   }
 }
 
 const UpdateProduct = async (req, res) => {
   try {
+    // Destructure the fields from the request body
+    const {
+      name,
+      description,
+      price,
+      discount,
+      imageUrl,
+      category,
+      stockQuantity
+    } = req.body
+
+    // Calculate the discounted price if a discount exists
+    let discountedPrice = price
+    if (discount > 0) {
+      discountedPrice = price - (price * discount) / 100
+    }
+
+    // Update the product, including the calculated discounted price
     const product = await Product.findByIdAndUpdate(
       req.params.productId,
-      req.body,
       {
-        new: true
+        name,
+        description,
+        price,
+        discount,
+        discountedPrice, // Adding the calculated discountedPrice
+        imageUrl,
+        category,
+        stockQuantity
+      },
+      {
+        new: true // Ensure the updated product is returned
       }
     )
+
+    // If the product is not found, return a 404 error
+    if (!product) {
+      return res.status(404).send({
+        status: 'Error',
+        msg: 'Product not found!'
+      })
+    }
+
+    // Send the updated product as a response
     res.status(200).send(product)
   } catch (error) {
-    throw error
+    console.error('Error updating product:', error)
+    res.status(500).send({
+      status: 'Error',
+      msg: 'An error has occurred updating the product!'
+    })
   }
 }
 

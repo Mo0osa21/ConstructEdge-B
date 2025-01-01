@@ -35,6 +35,10 @@ const productSchema = new mongoose.Schema({
     min: 0,
     max: 100
   },
+  discountedPrice: {
+    type: Number,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
