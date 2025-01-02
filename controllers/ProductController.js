@@ -116,9 +116,10 @@ const UpdateProduct = async (req, res) => {
 
 const DeleteProduct = async (req, res) => {
   try {
-    const productId = req.params.productId
+    const productId = mongoose.Types.ObjectId(req.params.productId)
 
-    const isInOrder = await Order.findOne({ 'products.productId': productId })
+    // Check if the product exists in an order
+    const isInOrder = await Order.findOne({ 'products.product': productId })
     if (isInOrder) {
       return res.status(400).send({
         msg: 'Product cannot be deleted as it exists in an order.',
@@ -126,9 +127,8 @@ const DeleteProduct = async (req, res) => {
       })
     }
 
-    const isInCart = await Cart.findOne({
-      'products.product': productId
-    })
+    // Check if the product exists in a cart
+    const isInCart = await Cart.findOne({ 'products.product': productId })
     if (isInCart) {
       return res.status(400).send({
         msg: 'Product cannot be deleted as it exists in an active cart.',
@@ -136,9 +136,17 @@ const DeleteProduct = async (req, res) => {
       })
     }
 
-    await Product.deleteOne({ _id: productId })
+    // Delete the product
+    const deletedProduct = await Product.deleteOne({ _id: productId })
+    if (deletedProduct.deletedCount === 0) {
+      return res.status(404).send({
+        msg: 'Product not found.',
+        status: 'Error'
+      })
+    }
+
     res.status(200).send({
-      msg: 'Product deleted successfully',
+      msg: 'Product deleted successfully.',
       payload: productId,
       status: 'Ok'
     })
