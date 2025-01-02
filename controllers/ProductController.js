@@ -38,7 +38,9 @@ const CreateProduct = async (req, res) => {
       stockQuantity
     } = req.body
     const discountedPrice =
-      discount > 0 ? price - (price * discount) / 100 : price
+      discount > 0
+        ? (price - (price * discount) / 100).toFixed(2)
+        : price.toFixed(2)
 
     const product = await Product.create({
       name,
@@ -74,7 +76,7 @@ const UpdateProduct = async (req, res) => {
     // Calculate the discounted price if a discount exists
     let discountedPrice = price
     if (discount > 0) {
-      discountedPrice = price - (price * discount) / 100
+      discountedPrice = (price - (price * discount) / 100).toFixed(2)
     }
 
     // Update the product, including the calculated discounted price
